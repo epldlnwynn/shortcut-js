@@ -62,4 +62,10 @@ export interface ShortcutKeys {
 
 declare const ShortcutKeys: ShortcutKeys;
 
+declare global {
+    interface Window {
+        ShortcutKeys: ShortcutKeys
+    }
+}
+
 export default ShortcutKeys;

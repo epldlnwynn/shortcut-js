@@ -1,11 +1,13 @@
 {
-    "name": "shortcut-keys",
+    "name": "shortcutkeys",
     "version": "1.0.0",
-    "description": "Keyboard shortcut monitoring and setting",
+    "description": "这是一个简单的 WEB 端快捷键监控和设置工具包",
     "keywords": [
-        "keyboard",
-        "utils",
-        "shortcut"
+        "快捷键",
+        "键盘",
+        "工具包",
+        "热键",
+        "浏览器"
     ],
     "author": "epldlnwynn",
     "repository": {
@@ -27,6 +29,7 @@
     },
     "typings": "./index.d.ts",
     "scripts": {
+        "compile": "tsc lib/shortcut-keys.ts",
         "release": "release-it"
     },
     "devDependencies": {

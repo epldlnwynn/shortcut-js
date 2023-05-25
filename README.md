@@ -1,4 +1,4 @@
-# ShortcutsUtil 使用指南
+# ShortcutKeys 使用指南
 
 ---
 
@@ -74,9 +74,8 @@
 
 
 
-## 免责声明
+## 许可证
 
-Copyright © 2023
+---
 
-- 切勿用于商业及非法用途，否则后果自负。
-- 如有侵权请联系删除。
+MIT © Epldlnwynn 2023

@@ -1,8 +1,18 @@
-import {HotKeys} from "../index";
+
+interface HotKeys {
+    alt?: boolean;  // 是否按下 Alt 键
+    ctrl?: boolean;  // 是否按下 Ctrl 键
+    meta?: boolean;  // 是否按下 Meta 键
+    shift?: boolean;  // 是否按下 Shift 键
+    keyCode?: number;  // 按键码，如 65=A
+    code: string;  // 按键名称，如 A
+
+    keys?: Array<string>; // 逻辑使用属性，已知按下的键，如 ['alt', 'a']
+};
 
 class KeyboardShortcut {
     readonly _listeners: any;
-    readonly _D: HTMLElement;
+    readonly _D: HTMLElement = document.body;
 
     /**
      * 直接绑定到控件
@@ -10,7 +20,6 @@ class KeyboardShortcut {
     bindKeyDown: (e: KeyboardEvent) => void;
 
     constructor(listeners?: any) {
-        this._D = document.body;
         this._listeners = listeners || {};
 
         if (!this._listeners.keydownHandler) {
@@ -26,7 +35,7 @@ class KeyboardShortcut {
                 e.metaKey && keys.push('meta')
                 keys.push(keyCode.toLowerCase())
 
-                const k = keys.join("+"), l = keyboardListeners[k]
+                const k = keys.join("+"), l = this._listeners[k]
                 if (l) {
                     l(e),l.propagate && e.stopPropagation(), e.preventDefault()
                 }
@@ -41,14 +50,16 @@ class KeyboardShortcut {
      * 设置快捷键<br>
      * 监听 keydown(按下)/keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
      * 设置成功后需要使用 closeKeys 关闭事件。
+     * @param el 需要监听的控件，如 HtmleElement  .classname  #id
      * @param call 回调函数
      */
-    setKeys(call?: (e: HotKeys) => void, keydownCall?: boolean) {
+    setKeys(el: any | null, call?: (e: HotKeys) => void, keydownCall?: boolean) {
+        const element = this._el(el) || this._D;
         let hotKeys:HotKeys = { code: '' }, sequence: any = {}, isDone = false, doneFunc = () => {
             hotKeys.keys = Object.keys(sequence).concat(hotKeys.code)
             call && call(hotKeys)
         };
-        keyboardListeners.hotKeysHandler = (e: KeyboardEvent) => {
+        this._listeners.hotKeysHandler = (e: KeyboardEvent) => {
             const { type } = e, ev = e as any;
             if ("keydown" === type) {
                 isDone = false,
@@ -78,17 +89,19 @@ class KeyboardShortcut {
         };
 
         return this
-            ._addEvent(this._D,"keydown", keyboardListeners.hotKeysHandler)
-            ._addEvent(this._D,"keyup", keyboardListeners.hotKeysHandler) as any
+            ._addEvent(element,"keydown", this._listeners.hotKeysHandler)
+            ._addEvent(element,"keyup", this._listeners.hotKeysHandler) as any
     }
 
     /**
      * 关闭设置快捷键时使用的 keydown/keyup 事件。
+     * @param el 需要监听的控件，如 HtmleElement  .classname  #id
      */
-    closeKeys() {
+    closeKeys(el: any | null) {
+        const element = this._el(el) || this._D;
         this._listeners.hotKeysHandler && this
-            ._removeEvent(this._D, "keydown", this._listeners.hotKeysHandler).
-            _removeEvent(this._D, "keyup", this._listeners.hotKeysHandler)
+            ._removeEvent(element, "keydown", this._listeners.hotKeysHandler).
+            _removeEvent(element, "keyup", this._listeners.hotKeysHandler)
         delete this._listeners['hotKeysHandler']
     }
 
@@ -102,11 +115,11 @@ class KeyboardShortcut {
      */
     on(el: any | null, keys: HotKeys | string, l: (e: KeyboardEvent) => void, propagate?: boolean) {
         const ks = this._compose(keys)
-        keyboardListeners[ks] = l, keyboardListeners[ks].propagate = propagate
+        this._listeners[ks] = l, this._listeners[ks].propagate = propagate
 
         if (el) {
-            const element = (typeof (el) === "string" ? document.querySelector(el) : el) as HTMLElement;
-            this._addEvent(element, "keydown", keyboardListeners.keydownHandler);
+            const element = this._el(el);
+            this._addEvent(element, "keydown", this._listeners.keydownHandler);
         }
 
         return this as any
@@ -119,11 +132,11 @@ class KeyboardShortcut {
      */
     off(el: any | null, keys?: HotKeys | string) {
         const ks = this._compose(keys || "")
-        if (ks) delete keyboardListeners[ks];
+        if (ks) delete this._listeners[ks];
 
         if (el) {
-            const element = (typeof(el) === "string" ? document.querySelector(el) : el) as HTMLElement;
-            this._removeEvent(element, "keydown", keyboardListeners.keydownHandler)
+            const element = this._el(el);
+            this._removeEvent(element, "keydown", this._listeners.keydownHandler)
         }
 
         return this as any
@@ -152,10 +165,16 @@ class KeyboardShortcut {
         h.push(keys.code.toLowerCase())
         return h.join("+")
     }
+    _el(el): HTMLElement {
+        return typeof (el) === "string" ? document.querySelector(el) : el;
+    }
 }
 
 
 const keyboardListeners: any = { };
 const ShortcutKeys = new KeyboardShortcut(keyboardListeners);
+
+// @ts-ignore
+if (typeof window !== "undefined") window.ShortcutKeys = ShortcutKeys;
 
 export default ShortcutKeys;
