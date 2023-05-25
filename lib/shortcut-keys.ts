@@ -1,5 +1,4 @@
-import {HotKeys} from "shortcut-keys";
-
+import {HotKeys} from "../index";
 
 class KeyboardShortcut {
     readonly _listeners: any;
