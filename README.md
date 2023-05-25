@@ -11,19 +11,19 @@
 
 
     // 一次性采集快捷键     
-    Shortcuts.setKeys(k => {
+    Shortcuts.setKeys(document.body, k => {
         console.log('采集快捷键', k.keys?.join(" + "), k)
     })
     
     
     // 采集快捷键，采集过程中显示已按下的键     
-    Shortcuts.setKeys(k => {
+    Shortcuts.setKeys(document.body, k => {
         console.log('采集快捷键', k.keys?.join(" + "), k)
     }, true)
     
     
     // 采集完成清除监听的 keydown和keyup 事件
-    Shortcuts.closeKeys()
+    Shortcuts.closeKeys(document.body)
     
 ```
 
