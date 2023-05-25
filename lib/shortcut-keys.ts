@@ -1,4 +1,4 @@
-import {HotKeys} from "shortcuts";
+import {HotKeys} from "shortcut-keys";
 
 
 class KeyboardShortcut {
@@ -18,6 +18,7 @@ class KeyboardShortcut {
             // 如果未设置 keydown 事件回调，使用默认方式
             this._listeners.keydownHandler = (e: KeyboardEvent) => {
                 const code = (e.code || e.key),
+                    // @ts-ignore
                     keyCode = code.substring(code.startsWith("Key") ? 3 : 0),
                     keys = [];
                 e.ctrlKey && keys.push('ctrl')
@@ -57,6 +58,7 @@ class KeyboardShortcut {
                     hotKeys.ctrl = e.ctrlKey,
                     hotKeys.meta = e.metaKey,
                     hotKeys.keyCode = e.keyCode,
+                    // @ts-ignore
                     hotKeys.code = e.code.substring(e.code.startsWith("Key") ? 3 : 0);
 
                 ["ctrl","shift","alt", "meta"].map(k => {
@@ -155,6 +157,6 @@ class KeyboardShortcut {
 
 
 const keyboardListeners: any = { };
-const Shortcuts = new KeyboardShortcut(keyboardListeners);
+const ShortcutKeys = new KeyboardShortcut(keyboardListeners);
 
-export default Shortcuts;
+export default ShortcutKeys;

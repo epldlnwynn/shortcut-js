@@ -1,5 +1,5 @@
 {
-    "name": "@epldlnwynn/shortcuts",
+    "name": "shortcut-keys",
     "version": "1.0.0",
     "description": "Keyboard shortcut monitoring and setting",
     "keywords": [
@@ -10,9 +10,9 @@
     "author": "epldlnwynn",
     "repository": {
         "type": "git",
-        "url": "https://github.com/epldlnwynn/shortcuts"
+        "url": "https://github.com/epldlnwynn/shortcut-keys"
     },
-    "homepage": "https://github.com/epldlnwynn/shortcuts/#readme",
+    "homepage": "https://github.com/epldlnwynn/shortcut-keys/#readme",
     "main": "index.js",
     "files": [
         "LICENSE",
