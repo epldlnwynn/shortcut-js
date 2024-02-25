@@ -12,9 +12,9 @@
     "author": "epldlnwynn",
     "repository": {
         "type": "git",
-        "url": "https://github.com/epldlnwynn/shortcut-keys"
+        "url": "https://github.com/epldlnwynn/shortcut-js"
     },
-    "homepage": "https://github.com/epldlnwynn/shortcut-keys/#readme",
+    "homepage": "https://github.com/epldlnwynn/shortcut-js/#readme",
     "main": "index.js",
     "files": [
         "LICENSE",
