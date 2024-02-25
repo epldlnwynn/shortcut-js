@@ -141,7 +141,7 @@ class KeyboardShortcut {
     } else if (typeof exports === 'object') {
         module.exports = factory();
     } else {
-        W.ShortcutKeys = factory();
+        W.ShortcutJs = factory();
     }
 })(this, function(){
     const keyboardListeners = {};

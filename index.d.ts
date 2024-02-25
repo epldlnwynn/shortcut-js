@@ -18,7 +18,7 @@ export interface HotKeys {
 }
 
 
-export interface ShortcutKeys {
+export interface ShortcutJs {
 
     /**
      * 直接绑定到控件
@@ -31,7 +31,7 @@ export interface ShortcutKeys {
      * 设置成功后需要使用 closeKeys 关闭事件。
      * @param call 回调函数
      */
-    setKeys(call?: (e: HotKeys) => void, keydownCall?: boolean): ShortcutKeys;
+    setKeys(call?: (e: HotKeys) => void, keydownCall?: boolean): ShortcutJs;
 
     /**
      * 关闭设置快捷键时使用的 keydown/keyup 事件。
@@ -46,26 +46,26 @@ export interface ShortcutKeys {
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    on(el: any | null, keys: HotKeys | string, l: (e: KeyboardEvent) => void, propagate?: boolean): ShortcutKeys;
+    on(el: any | null, keys: HotKeys | string, l: (e: KeyboardEvent) => void, propagate?: boolean): ShortcutJs;
 
     /**
      * 关闭监听快捷键
      * @param el 已监听的控件
      * @param keys 已监听的键
      */
-    off(el: any | null, keys?: HotKeys | string): ShortcutKeys;
+    off(el: any | null, keys?: HotKeys | string): ShortcutJs;
 
 
-    new(listeners?: any): ShortcutKeys;
-    default: ShortcutKeys;
+    new(listeners?: any): ShortcutJs;
+    default: ShortcutJs;
 }
 
-declare const ShortcutKeys: ShortcutKeys;
+declare const ShortcutJs: ShortcutJs;
 
 declare global {
     interface Window {
-        ShortcutKeys: ShortcutKeys
+        ShortcutKeys: ShortcutJs
     }
 }
 
-export default ShortcutKeys;
+export default ShortcutJs;

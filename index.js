@@ -1,1 +1,1 @@
-module.exports = require('./lib/shortcut-keys');
+module.exports = require('./lib/shortcut-js');

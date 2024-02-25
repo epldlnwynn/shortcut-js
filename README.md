@@ -7,7 +7,7 @@
 ### 快速采集快捷键
 ``` typescript
     // 导入对象
-    import Shortcuts from "ShortcutKeys";
+    import Shortcuts from "ShortcutJs";
 
 
     // 一次性采集快捷键     
@@ -31,7 +31,7 @@
 
 ``` typescript
     // 导入对象
-    import Shortcuts from "ShortcutKeys";
+    import Shortcuts from "ShortcutJs";
 
 
     // 使用对象方式创建
@@ -63,7 +63,7 @@
 
 ```typescript
     // 导入对象
-    import Shortcuts from "ShortcutKeys";
+    import Shortcuts from "ShortcutJs";
 
     // 绑定事件，当 [input] 控件接收到组合键时会触发回调
     Shortcuts.on(null, "ctrl+shift+a", e => {

@@ -172,9 +172,9 @@ class KeyboardShortcut {
 
 
 const keyboardListeners: any = { };
-const ShortcutKeys = new KeyboardShortcut(keyboardListeners);
+const ShortcutJs = new KeyboardShortcut(keyboardListeners);
 
 // @ts-ignore
-if (typeof window !== "undefined") window.ShortcutKeys = ShortcutKeys;
+if (typeof window !== "undefined") window.ShortcutJs = ShortcutJs;
 
-export default ShortcutKeys;
+export default ShortcutJs;
