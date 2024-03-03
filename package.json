@@ -1,6 +1,6 @@
 {
     "name": "@epldlnwynn/shortcut-js",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "这是一个简单的 WEB 端快捷键监控和设置工具包",
     "keywords": [
         "快捷键",
@@ -19,6 +19,9 @@
     "files": [
         "LICENSE",
         "README.md",
+        "lib/*.ts",
+        "dist/*.html",
+        "dist/*.js",
         "*.d.ts",
         "*.js"
     ],
