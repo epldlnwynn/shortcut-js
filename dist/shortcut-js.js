@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
 ;
-var MODULES = ["ctrl", "shift", "alt", "meta"];
+var SHORTCUTS_MODULES = ["ctrl", "shift", "alt", "meta"];
 var KeyboardShortcut = /** @class */ (function () {
     function KeyboardShortcut() {
         this._D = document.body;
@@ -46,7 +46,7 @@ var KeyboardShortcut = /** @class */ (function () {
                     hotKeys.keyCode = e.keyCode,
                     // @ts-ignore
                     hotKeys.code = e.code.substring(e.code.startsWith("Key") ? 3 : 0);
-                MODULES.map(function (k) {
+                SHORTCUTS_MODULES.map(function (k) {
                     if (ev[k + 'Key'] && !(k in sequence))
                         sequence[k] = Object.keys(sequence).length;
                 });
@@ -129,7 +129,11 @@ var KeyboardShortcut = /** @class */ (function () {
                 el = document.querySelector("[aria-keyshortcuts='" + p + "']");
             }
         }
-        el && this._removeEvent(el, "keydown", this._keydownHandler);
+        if (el) {
+            var keys = el.getAttribute("aria-keyshortcuts");
+            this._removeEvent(el, "keydown", this._keydownHandler);
+            delete this._listeners[keys];
+        }
         return this;
     };
     KeyboardShortcut.prototype._addEvent = function (el, type, l, once) {
@@ -156,7 +160,7 @@ var KeyboardShortcut = /** @class */ (function () {
             var ar = keys.split('+');
             // @ts-ignore
             k = { code: ar[ar.length - 1] };
-            MODULES.map(function (s) {
+            SHORTCUTS_MODULES.map(function (s) {
                 k[s] = keys.indexOf(s) != -1;
             });
         }

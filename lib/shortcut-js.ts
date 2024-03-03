@@ -15,7 +15,7 @@ interface HotKeysEvent extends KeyboardEvent {
     hotKeys: string;
 }
 
-const MODULES = ["ctrl","shift","alt", "meta"]
+const SHORTCUTS_MODULES = ["ctrl","shift","alt", "meta"];
 
 class KeyboardShortcut {
     protected _listeners: any;
@@ -72,7 +72,7 @@ class KeyboardShortcut {
                     // @ts-ignore
                     hotKeys.code = e.code.substring(e.code.startsWith("Key") ? 3 : 0);
 
-                MODULES.map(k => {
+                SHORTCUTS_MODULES.map(k => {
                     if (ev[k + 'Key'] && !(k in sequence)) sequence[k] = Object.keys(sequence).length;
                 })
 
@@ -156,7 +156,11 @@ class KeyboardShortcut {
             }
         }
 
-        el && this._removeEvent(el, "keydown", this._keydownHandler)
+        if (el) {
+            const keys = el.getAttribute("aria-keyshortcuts")
+            this._removeEvent(el, "keydown", this._keydownHandler)
+            delete this._listeners[keys]
+        }
 
         return this
     }
@@ -187,7 +191,7 @@ class KeyboardShortcut {
             const ar = keys.split('+')
             // @ts-ignore
             k = {code: ar[ar.length - 1]}
-            MODULES.map(s => {
+            SHORTCUTS_MODULES.map(s => {
                 k[s] = keys.indexOf(s) != -1
             })
         } else {
