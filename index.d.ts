@@ -6,7 +6,7 @@
 /**
  * 热键设置
  */
-export interface HotKeys {
+interface HotKeys {
     alt?: boolean;  // 是否按下 Alt 键
     ctrl?: boolean;  // 是否按下 Ctrl 键
     meta?: boolean;  // 是否按下 Meta 键
@@ -17,55 +17,80 @@ export interface HotKeys {
     keys?: Array<string>; // 逻辑使用属性，已知按下的键，如 ['alt', 'a']
 }
 
+/**
+ * 热键事件
+ */
+interface HotKeysEvent extends KeyboardEvent {
+    hotKeys: string;
+}
 
-export interface ShortcutJs {
+/**
+ * 热键管理
+ */
+interface ShortcutJs {
 
     /**
-     * 直接绑定到控件
-     */
-    bindKeyDown: (e: KeyboardEvent) => void;
-
-    /**
-     * 设置快捷键<br>
-     * 监听 keydown(按下)/keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
+     * 采集快捷键，事件绑定到 body 节点<br>
+     * 监听 keydown(按下) 和 keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
      * 设置成功后需要使用 closeKeys 关闭事件。
-     * @param call 回调函数
+     * @param call 回调函数，需要返回一个布尔值，表示是否成功。
      */
-    setKeys(call?: (e: HotKeys) => void, keydownCall?: boolean): ShortcutJs;
+    getHotKeys(call: (e: HotKeys) => boolean): void;
 
     /**
-     * 关闭设置快捷键时使用的 keydown/keyup 事件。
+     * 采集快捷键<br>
+     * 监听 keydown(按下) 和 keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
+     * 设置成功后需要使用 closeKeys 关闭事件。
+     * @param elOrSelectors 需要监听的控件，或 document.querySelector 查询规则
+     * @param call 回调函数，需要返回一个布尔值，表示是否成功。
      */
-    closeKeys(): void;
+    getHotKeys(elOrSelectors: string | Element, call: (e: HotKeys) => boolean): void;
 
 
     /**
-     * 监听快捷键
-     * @param el 需要监听的控件，允许为 null，可以使用 [bindKeyDown] 函数触发事件
+     * 监听快捷键，事件绑定到 body 中
      * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    on(el: any | null, keys: HotKeys | string, l: (e: KeyboardEvent) => void, propagate?: boolean): ShortcutJs;
+    on(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
 
     /**
-     * 关闭监听快捷键
-     * @param el 已监听的控件
-     * @param keys 已监听的键
+     * 监听快捷键
+     * @param elOrSelectors 需要监听的控件，支持 document.querySelector 查询规则。也可以使用 [bindKeyDown] 函数触发事件
+     * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
+     * @param l 需要触发的回调函数
+     * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    off(el: any | null, keys?: HotKeys | string): ShortcutJs;
+    on(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+
+    /**
+     * 监听快捷键，事件绑定到 body 中，仅执行一次
+     * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
+     * @param l 需要触发的回调函数
+     * @param propagate 是否允许向上传递事件响应，默认为允许
+     */
+    once(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+
+    /**
+     * 监听快捷键，仅执行一次
+     * @param elOrSelectors 需要监听的控件，支持 document.querySelector 查询规则。也可以使用 [bindKeyDown] 函数触发事件
+     * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
+     * @param l 需要触发的回调函数
+     * @param propagate 是否允许向上传递事件响应，默认为允许
+     */
+    once(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
 
 
-    new(listeners?: any): ShortcutJs;
-    default: ShortcutJs;
+    /**
+     * 关闭监听的快捷键
+     * @param selectors 已监听的快捷键或者控件，如果是控件支持 document.querySelector 查询规则
+     */
+    off(selectors: string | Element | HotKeys): ShortcutJs;
+
+
 }
 
 declare const ShortcutJs: ShortcutJs;
 
-declare global {
-    interface Window {
-        ShortcutKeys: ShortcutJs
-    }
-}
-
-export default ShortcutJs;
+export default ShortcutJs

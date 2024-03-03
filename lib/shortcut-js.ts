@@ -1,4 +1,5 @@
 
+
 interface HotKeys {
     alt?: boolean;  // 是否按下 Alt 键
     ctrl?: boolean;  // 是否按下 Ctrl 键
@@ -10,56 +11,56 @@ interface HotKeys {
     keys?: Array<string>; // 逻辑使用属性，已知按下的键，如 ['alt', 'a']
 };
 
+interface HotKeysEvent extends KeyboardEvent {
+    hotKeys: string;
+}
+
+const MODULES = ["ctrl","shift","alt", "meta"]
+
 class KeyboardShortcut {
-    readonly _listeners: any;
-    readonly _D: HTMLElement = document.body;
+    protected _listeners: any;
+    protected _D: HTMLElement = document.body;
 
-    /**
-     * 直接绑定到控件
-     */
-    bindKeyDown: (e: KeyboardEvent) => void;
+    constructor() {
+        this._listeners = {};
+        this._keydownHandler = this._keydownHandler.bind(this)
+    }
 
-    constructor(listeners?: any) {
-        this._listeners = listeners || {};
+    protected _keydownHandler(e: HotKeysEvent) {
+        const code = (e.code || e.key),
+            // @ts-ignore
+            keyCode = code.substring(code.startsWith("Key") ? 3 : 0),
+            keys = [], filter = [16,17,18,91,93];
 
-        if (!this._listeners.keydownHandler) {
-            // 如果未设置 keydown 事件回调，使用默认方式
-            this._listeners.keydownHandler = (e: KeyboardEvent) => {
-                const code = (e.code || e.key),
-                    // @ts-ignore
-                    keyCode = code.substring(code.startsWith("Key") ? 3 : 0),
-                    keys = [];
-                e.ctrlKey && keys.push('ctrl')
-                e.shiftKey && keys.push('shift')
-                e.altKey && keys.push('alt')
-                e.metaKey && keys.push('meta')
-                keys.push(keyCode.toLowerCase())
+        e.ctrlKey && keys.push('ctrl')
+        e.shiftKey && keys.push('shift')
+        e.altKey && keys.push('alt')
+        e.metaKey && keys.push('meta')
 
-                const k = keys.join("+"), l = this._listeners[k]
-                if (l) {
-                    l(e),l.propagate && e.stopPropagation(), e.preventDefault()
-                }
-            }
+        if (filter.filter(n => n === e.keyCode).length == 0)
+            keys.push(keyCode.toLowerCase())
+
+        const k = keys.join("+"), l = this._listeners[k]
+        if (l) {
+            e.hotKeys = k
+            l(e),l.propagate && e.stopPropagation(), e.preventDefault()
         }
-
-        this.bindKeyDown = this._listeners.keydownHandler
     }
 
 
-    /**
-     * 设置快捷键<br>
-     * 监听 keydown(按下)/keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
-     * 设置成功后需要使用 closeKeys 关闭事件。
-     * @param el 需要监听的控件，如 HtmleElement  .classname  #id
-     * @param call 回调函数
-     */
-    setKeys(el: any | null, call?: (e: HotKeys) => void, keydownCall?: boolean) {
-        const element = this._el(el) || this._D;
-        let hotKeys:HotKeys = { code: '' }, sequence: any = {}, isDone = false, doneFunc = () => {
-            hotKeys.keys = Object.keys(sequence).concat(hotKeys.code)
-            call && call(hotKeys)
-        };
-        this._listeners.hotKeysHandler = (e: KeyboardEvent) => {
+    getHotKeys() {
+        const len = arguments.length, ar = arguments, t = this
+        let el: string | Element = this._D, call: (e: HotKeys) => boolean, isDone = false, sequence: any = {}
+
+        if (len === 2) {
+            el = ar[0], call = ar[1]
+        } else if (typeof(ar[0]) === 'function') {
+            call = ar[0]
+        }
+
+        const element = this._element(el), hotKeys:HotKeys = { code: '' };
+
+        const hotKeysHandler = (e: KeyboardEvent) => {
             const { type } = e, ev = e as any;
             if ("keydown" === type) {
                 isDone = false,
@@ -71,11 +72,10 @@ class KeyboardShortcut {
                     // @ts-ignore
                     hotKeys.code = e.code.substring(e.code.startsWith("Key") ? 3 : 0);
 
-                ["ctrl","shift","alt", "meta"].map(k => {
+                MODULES.map(k => {
                     if (ev[k + 'Key'] && !(k in sequence)) sequence[k] = Object.keys(sequence).length;
                 })
 
-                keydownCall && doneFunc()
             } else if ("keyup" === type) {
                 if (Object.keys(sequence).length == 0) return;
 
@@ -87,94 +87,130 @@ class KeyboardShortcut {
                 isDone = true;
             }
         };
+        const doneFunc = () => {
+            hotKeys.keys = Object.keys(sequence).concat(hotKeys.code)
+            const ok = call(hotKeys)
+            if (ok) {
+                t._removeEvent(element, "keydown", hotKeysHandler)
+                t._removeEvent(element, "keyup", hotKeysHandler)
+            }
+        };
 
         return this
-            ._addEvent(element,"keydown", this._listeners.hotKeysHandler)
-            ._addEvent(element,"keyup", this._listeners.hotKeysHandler) as any
-    }
-
-    /**
-     * 关闭设置快捷键时使用的 keydown/keyup 事件。
-     * @param el 需要监听的控件，如 HtmleElement  .classname  #id
-     */
-    closeKeys(el: any | null) {
-        const element = this._el(el) || this._D;
-        this._listeners.hotKeysHandler && this
-            ._removeEvent(element, "keydown", this._listeners.hotKeysHandler).
-            _removeEvent(element, "keyup", this._listeners.hotKeysHandler)
-        delete this._listeners['hotKeysHandler']
+            ._addEvent(element,"keydown", hotKeysHandler)
+            ._addEvent(element,"keyup", hotKeysHandler)
     }
 
 
-    /**
-     * 监听快捷键
-     * @param el 需要监听的控件，允许为 null，可以使用 [bindKeyDown] 函数触发事件
-     * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
-     * @param l 需要触发的回调函数
-     * @param propagate 是否允许向上传递事件响应，默认为允许
-     */
-    on(el: any | null, keys: HotKeys | string, l: (e: KeyboardEvent) => void, propagate?: boolean) {
-        const ks = this._compose(keys)
-        this._listeners[ks] = l, this._listeners[ks].propagate = propagate
+    on() {
+        const len = arguments.length, ar = arguments
+        let el: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate: boolean = false
 
-        if (el) {
-            const element = this._el(el);
-            this._addEvent(element, "keydown", this._listeners.keydownHandler);
+        if (len === 4) {
+            el = ar[0], keys = ar[1], l = ar[2], propagate = ar[3]
+        } else if (len === 3 && typeof(ar[len - 1]) === 'function') {
+            el = ar[0], keys = ar[1], l = ar[2]
+        } else if (len === 3) {
+            el = this._D, keys = ar[0], l = ar[1], propagate = ar[2]
+        } else {
+            el = this._D, keys = ar[0], l = ar[1]
         }
 
-        return this as any
+        return this._bind(el, keys, l, propagate, false)
     }
+    once() {
+        const len = arguments.length, ar = arguments
+        let el: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate: boolean = false
 
-    /**
-     * 关闭监听快捷键
-     * @param el 已监听的控件
-     * @param keys 已监听的键
-     */
-    off(el: any | null, keys?: HotKeys | string) {
-        const ks = this._compose(keys || "")
-        if (ks) delete this._listeners[ks];
-
-        if (el) {
-            const element = this._el(el);
-            this._removeEvent(element, "keydown", this._listeners.keydownHandler)
+        if (len === 4) {
+            el = ar[0], keys = ar[1], l = ar[2], propagate = ar[3]
+        } else if (len === 3 && typeof(ar[len - 1]) === 'function') {
+            el = ar[0], keys = ar[1], l = ar[2]
+        } else if (len === 3) {
+            el = this._D, keys = ar[0], l = ar[1], propagate = ar[2]
+        } else {
+            el = this._D, keys = ar[0], l = ar[1]
         }
 
-        return this as any
+        return this._bind(el, keys, l, propagate, true)
     }
 
 
-    _addEvent(el: HTMLElement, type: string, l: any) {
-        el?.addEventListener(type, l, false);
+    off(p: any) {
+        const t = typeof p, s = t === 'string'
+
+        let el;
+        if (s) {
+            // 是快捷键
+            if (p.indexOf("+") > 0) {
+                el = document.querySelector("[aria-keyshortcuts='" + p +"']")
+            } else {
+                el = document.querySelector(p)
+            }
+        } else {
+            if ("tagName" in p) {
+                el = p
+            } else {
+                p = this._compose(p)
+                el = document.querySelector("[aria-keyshortcuts='" + p +"']")
+            }
+        }
+
+        el && this._removeEvent(el, "keydown", this._keydownHandler)
+
         return this
     }
-    _removeEvent(el: HTMLElement, type: string, l: any) {
+
+
+    protected _addEvent(el: HTMLElement, type: string, l: any, once?: boolean) {
+        el?.addEventListener(type, l, {capture: false, once});
+        return this
+    }
+    protected _removeEvent(el: HTMLElement, type: string, l: any) {
         el?.removeEventListener(type, l, false);
+        el?.removeAttribute("aria-keyshortcuts")
         return this
     }
-    _compose(keys: HotKeys | string): string {
+    protected _bind(el: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate: boolean, once: boolean) {
+        const ks = this._compose(keys), element = this._element(el)
+        this._listeners[ks] = l
+        this._listeners[ks].propagate = propagate
+        once == false && element.setAttribute("aria-keyshortcuts", ks)
+        this._addEvent(element, "keydown", this._keydownHandler, once);
+
+        return this
+    }
+    protected _compose(keys: HotKeys | string): string {
         // 把快捷键组合为字符串，做为关键词。如: ctrl+a 或 ctrl+shift+a 或 meta+a
+        let k: any
         if (typeof (keys) === "string") {
-            return keys.toLowerCase()
+            const ar = keys.split('+')
+            // @ts-ignore
+            k = {code: ar[ar.length - 1]}
+            MODULES.map(s => {
+                k[s] = keys.indexOf(s) != -1
+            })
+        } else {
+            k = keys
         }
 
         const h = [];
-        keys.ctrl && h.push('ctrl')
-        keys.shift && h.push('shift')
-        keys.alt && h.push('alt')
-        keys.meta && h.push('meta')
-        h.push(keys.code.toLowerCase())
+        k.ctrl && h.push('ctrl')
+        k.shift && h.push('shift')
+        k.alt && h.push('alt')
+        k.meta && h.push('meta')
+        h.push(k.code.toLowerCase())
         return h.join("+")
     }
-    _el(el): HTMLElement {
+    protected _element(el: any): HTMLElement {
         return typeof (el) === "string" ? document.querySelector(el) : el;
     }
 }
 
 
-const keyboardListeners: any = { };
-const ShortcutJs = new KeyboardShortcut(keyboardListeners);
+const ShortcutJs = new KeyboardShortcut();
 
 // @ts-ignore
-if (typeof window !== "undefined") window.ShortcutJs = ShortcutJs;
+if (typeof window !== "undefined") window.shortcutJs = ShortcutJs;
 
 export default ShortcutJs;

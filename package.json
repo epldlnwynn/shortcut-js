@@ -1,6 +1,6 @@
 {
     "name": "@epldlnwynn/shortcut-js",
-    "version": "1.0.1",
+    "version": "1.0.2",
     "description": "这是一个简单的 WEB 端快捷键监控和设置工具包",
     "keywords": [
         "快捷键",
@@ -32,10 +32,12 @@
     },
     "typings": "./index.d.ts",
     "scripts": {
-        "compile": "tsc lib/shortcut-js.ts",
+        "compile": "tsc lib/shortcut-js.ts --sourceMap true --outDir ./dist && jsmin -o dist/shortcut-js.min.js ./dist/shortcut-js.js",
+        "minify": "jsmin -o dist/shortcut-js.min.js ./dist/shortcut-js.js",
         "release": "release-it"
     },
     "devDependencies": {
+        "jsmin": "^1.0.1",
         "typescript": "^4.0.5"
     }
 }

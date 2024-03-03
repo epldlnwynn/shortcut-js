@@ -1,41 +1,42 @@
-class KeyboardShortcut {
-    constructor(listeners) {
+"use strict";
+exports.__esModule = true;
+;
+var MODULES = ["ctrl", "shift", "alt", "meta"];
+var KeyboardShortcut = /** @class */ (function () {
+    function KeyboardShortcut() {
         this._D = document.body;
-        this._listeners = listeners || {};
-        if (!this._listeners.keydownHandler) {
-            // 如果未设置 keydown 事件回调，使用默认方式
-            this._listeners.keydownHandler = (e) => {
-                const code = (e.code || e.key),
-                    // @ts-ignore
-                    keyCode = code.substring(code.startsWith("Key") ? 3 : 0), keys = [];
-                e.ctrlKey && keys.push('ctrl');
-                e.shiftKey && keys.push('shift');
-                e.altKey && keys.push('alt');
-                e.metaKey && keys.push('meta');
-                keys.push(keyCode.toLowerCase());
-                const k = keys.join("+"), l = this._listeners[k];
-                if (l) {
-                    l(e), l.propagate && e.stopPropagation(), e.preventDefault();
-                }
-            };
-        }
-        this.bindKeyDown = this._listeners.keydownHandler;
+        this._listeners = {};
+        this._keydownHandler = this._keydownHandler.bind(this);
     }
-    /**
-     * 设置快捷键<br>
-     * 监听 keydown(按下)/keyup(弹起) 事件，按下事件被触发时捕捉当前键码，弹起事件被触发时快捷键捕获完成，并且触发 [call] 回调函数。<br>
-     * 设置成功后需要使用 closeKeys 关闭事件。
-     * @param el 需要监听的控件，如 HtmleElement  .classname  #id
-     * @param call 回调函数
-     */
-    setKeys(el, call, keydownCall) {
-        const element = this._el(el) || this._D;
-        let hotKeys = { code: '' }, sequence = {}, isDone = false, doneFunc = (target) => {
-            hotKeys.keys = Object.keys(sequence).concat(hotKeys.code);
-            call && call(hotKeys, target);
-        };
-        this._listeners.hotKeysHandler = (e) => {
-            const { type } = e, ev = e;
+    KeyboardShortcut.prototype._keydownHandler = function (e) {
+        var code = (e.code || e.key), 
+        // @ts-ignore
+        keyCode = code.substring(code.startsWith("Key") ? 3 : 0), keys = [], filter = [16, 17, 18, 91, 93];
+        e.ctrlKey && keys.push('ctrl');
+        e.shiftKey && keys.push('shift');
+        e.altKey && keys.push('alt');
+        e.metaKey && keys.push('meta');
+        if (filter.filter(function (n) { return n === e.keyCode; }).length == 0)
+            keys.push(keyCode.toLowerCase());
+        var k = keys.join("+"), l = this._listeners[k];
+        if (l) {
+            e.hotKeys = k;
+            l(e), l.propagate && e.stopPropagation(), e.preventDefault();
+        }
+    };
+    KeyboardShortcut.prototype.getHotKeys = function () {
+        var len = arguments.length, ar = arguments, t = this;
+        var el = this._D, call, isDone = false, sequence = {};
+        if (len === 2) {
+            el = ar[0], call = ar[1];
+        }
+        else if (typeof (ar[0]) === 'function') {
+            call = ar[0];
+        }
+        var element = this._element(el), hotKeys = { code: '' };
+        var hotKeysHandler = function (e) {
+            var _a;
+            var type = e.type, ev = e;
             if ("keydown" === type) {
                 isDone = false,
                     hotKeys.alt = e.altKey,
@@ -45,106 +46,139 @@ class KeyboardShortcut {
                     hotKeys.keyCode = e.keyCode,
                     // @ts-ignore
                     hotKeys.code = e.code.substring(e.code.startsWith("Key") ? 3 : 0);
-                ["ctrl", "shift", "alt", "meta"].map(k => {
+                MODULES.map(function (k) {
                     if (ev[k + 'Key'] && !(k in sequence))
                         sequence[k] = Object.keys(sequence).length;
                 });
-                keydownCall && doneFunc(e.currentTarget);
             }
             else if ("keyup" === type) {
                 if (Object.keys(sequence).length == 0)
                     return;
                 if (isDone) {
-                    doneFunc(e.currentTarget);
-                    console.log("新快捷热键为:", hotKeys.keys?.join(" + ")), sequence = {};
+                    doneFunc();
+                    console.log("新快捷热键为:", (_a = hotKeys.keys) === null || _a === void 0 ? void 0 : _a.join(" + ")), sequence = {};
                     return;
                 }
                 isDone = true;
             }
         };
+        var doneFunc = function () {
+            hotKeys.keys = Object.keys(sequence).concat(hotKeys.code);
+            var ok = call(hotKeys);
+            if (ok) {
+                t._removeEvent(element, "keydown", hotKeysHandler);
+                t._removeEvent(element, "keyup", hotKeysHandler);
+            }
+        };
         return this
-            ._addEvent(element, "keydown", this._listeners.hotKeysHandler)
-            ._addEvent(element, "keyup", this._listeners.hotKeysHandler);
-    }
-    /**
-     * 关闭设置快捷键时使用的 keydown/keyup 事件。
-     * @param el 需要取消监听的控件，如 HtmleElement  .classname  #id
-     */
-    closeKeys(el) {
-        const element = this._el(el) || this._D;
-        this._listeners.hotKeysHandler && this
-            ._removeEvent(element, "keydown", this._listeners.hotKeysHandler).
-            _removeEvent(element, "keyup", this._listeners.hotKeysHandler);
-        delete this._listeners['hotKeysHandler'];
-    }
-    /**
-     * 监听快捷键
-     * @param el 需要监听的控件，允许为 null，可以使用 [bindKeyDown] 函数触发事件，如 HtmleElement  .classname  #id
-     * @param keys 需要监听的键，如 ctrl+a  ctrl+shift+a  meta+a
-     * @param l 需要触发的回调函数
-     * @param propagate 是否允许向上传递事件响应，默认为允许
-     */
-    on(el, keys, l, propagate) {
-        const ks = this._compose(keys);
-        this._listeners[ks] = l, this._listeners[ks].propagate = propagate;
-        if (el) {
-            const element = this._el(el);
-            this._addEvent(element, "keydown", this._listeners.keydownHandler);
+            ._addEvent(element, "keydown", hotKeysHandler)
+            ._addEvent(element, "keyup", hotKeysHandler);
+    };
+    KeyboardShortcut.prototype.on = function () {
+        var len = arguments.length, ar = arguments;
+        var el, keys, l, propagate = false;
+        if (len === 4) {
+            el = ar[0], keys = ar[1], l = ar[2], propagate = ar[3];
         }
-        return this;
-    }
-    /**
-     * 关闭监听快捷键
-     * @param el 已监听的控件，如 HtmleElement  .classname  #id
-     * @param keys 已监听的键
-     */
-    off(el, keys) {
-        const ks = this._compose(keys || "");
-        if (ks)
-            delete this._listeners[ks];
-        if (el) {
-            const element = this._el(el);
-            this._removeEvent(element, "keydown", this._listeners.keydownHandler);
+        else if (len === 3 && typeof (ar[len - 1]) === 'function') {
+            el = ar[0], keys = ar[1], l = ar[2];
         }
+        else if (len === 3) {
+            el = this._D, keys = ar[0], l = ar[1], propagate = ar[2];
+        }
+        else {
+            el = this._D, keys = ar[0], l = ar[1];
+        }
+        return this._bind(el, keys, l, propagate, false);
+    };
+    KeyboardShortcut.prototype.once = function () {
+        var len = arguments.length, ar = arguments;
+        var el, keys, l, propagate = false;
+        if (len === 4) {
+            el = ar[0], keys = ar[1], l = ar[2], propagate = ar[3];
+        }
+        else if (len === 3 && typeof (ar[len - 1]) === 'function') {
+            el = ar[0], keys = ar[1], l = ar[2];
+        }
+        else if (len === 3) {
+            el = this._D, keys = ar[0], l = ar[1], propagate = ar[2];
+        }
+        else {
+            el = this._D, keys = ar[0], l = ar[1];
+        }
+        return this._bind(el, keys, l, propagate, true);
+    };
+    KeyboardShortcut.prototype.off = function (p) {
+        var t = typeof p, s = t === 'string';
+        var el;
+        if (s) {
+            // 是快捷键
+            if (p.indexOf("+") > 0) {
+                el = document.querySelector("[aria-keyshortcuts='" + p + "']");
+            }
+            else {
+                el = document.querySelector(p);
+            }
+        }
+        else {
+            if ("tagName" in p) {
+                el = p;
+            }
+            else {
+                p = this._compose(p);
+                el = document.querySelector("[aria-keyshortcuts='" + p + "']");
+            }
+        }
+        el && this._removeEvent(el, "keydown", this._keydownHandler);
         return this;
-    }
-    _addEvent(el, type, l) {
-        el?.addEventListener(type, l, false);
+    };
+    KeyboardShortcut.prototype._addEvent = function (el, type, l, once) {
+        el === null || el === void 0 ? void 0 : el.addEventListener(type, l, { capture: false, once: once });
         return this;
-    }
-    _removeEvent(el, type, l) {
-        el?.removeEventListener(type, l, false);
+    };
+    KeyboardShortcut.prototype._removeEvent = function (el, type, l) {
+        el === null || el === void 0 ? void 0 : el.removeEventListener(type, l, false);
+        el === null || el === void 0 ? void 0 : el.removeAttribute("aria-keyshortcuts");
         return this;
-    }
-    _compose(keys) {
+    };
+    KeyboardShortcut.prototype._bind = function (el, keys, l, propagate, once) {
+        var ks = this._compose(keys), element = this._element(el);
+        this._listeners[ks] = l;
+        this._listeners[ks].propagate = propagate;
+        once == false && element.setAttribute("aria-keyshortcuts", ks);
+        this._addEvent(element, "keydown", this._keydownHandler, once);
+        return this;
+    };
+    KeyboardShortcut.prototype._compose = function (keys) {
         // 把快捷键组合为字符串，做为关键词。如: ctrl+a 或 ctrl+shift+a 或 meta+a
+        var k;
         if (typeof (keys) === "string") {
-            return keys.toLowerCase();
+            var ar = keys.split('+');
+            // @ts-ignore
+            k = { code: ar[ar.length - 1] };
+            MODULES.map(function (s) {
+                k[s] = keys.indexOf(s) != -1;
+            });
         }
-        const h = [];
-        keys.ctrl && h.push('ctrl');
-        keys.shift && h.push('shift');
-        keys.alt && h.push('alt');
-        keys.meta && h.push('meta');
-        h.push(keys.code.toLowerCase());
+        else {
+            k = keys;
+        }
+        var h = [];
+        k.ctrl && h.push('ctrl');
+        k.shift && h.push('shift');
+        k.alt && h.push('alt');
+        k.meta && h.push('meta');
+        h.push(k.code.toLowerCase());
         return h.join("+");
-    }
-    _el(el) {
+    };
+    KeyboardShortcut.prototype._element = function (el) {
         return typeof (el) === "string" ? document.querySelector(el) : el;
-    }
-}
-
-
-(function(W, factory) {
-    if (typeof define === 'function' && define.amd) {
-        define(factory);
-    } else if (typeof exports === 'object') {
-        module.exports = factory();
-    } else {
-        W.ShortcutJs = factory();
-    }
-})(this, function(){
-    const keyboardListeners = {};
-    const ShortcutKeys = new KeyboardShortcut(keyboardListeners);
-    return ShortcutKeys
-})
+    };
+    return KeyboardShortcut;
+}());
+var ShortcutJs = new KeyboardShortcut();
+// @ts-ignore
+if (typeof window !== "undefined")
+    window.shortcutJs = ShortcutJs;
+exports["default"] = ShortcutJs;
+//# sourceMappingURL=shortcut-js.js.map
