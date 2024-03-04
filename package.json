@@ -1,13 +1,17 @@
 {
-    "name": "@epldlnwynn/shortcut-js",
-    "version": "1.0.3",
+    "name": "listen-keys",
+    "version": "1.0.4",
     "description": "这是一个简单的 WEB 端快捷键监控和设置工具包",
     "keywords": [
         "快捷键",
         "键盘",
         "工具包",
         "热键",
-        "浏览器"
+        "浏览器",
+        "Hot Keys",
+        "Shortcut keys",
+        "Keyboard shortcut",
+        "Listen keys"
     ],
     "author": "epldlnwynn",
     "repository": {
@@ -32,8 +36,8 @@
     },
     "typings": "./index.d.ts",
     "scripts": {
-        "compile": "tsc lib/shortcut-js.ts --sourceMap true --outDir ./dist && jsmin -o dist/shortcut-js.min.js ./dist/shortcut-js.js",
-        "minify": "jsmin -o dist/shortcut-js.min.js ./dist/shortcut-js.js",
+        "compile": "tsc lib/shortcut.ts --sourceMap true --outDir ./dist && npm run minify",
+        "minify": "jsmin -o dist/shortcut.min.js ./dist/shortcut.js",
         "release": "release-it"
     },
     "devDependencies": {

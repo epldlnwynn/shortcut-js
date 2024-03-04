@@ -27,7 +27,7 @@ interface HotKeysEvent extends KeyboardEvent {
 /**
  * 热键管理
  */
-interface ShortcutJs {
+interface ListenKeys {
 
     /**
      * 采集快捷键，事件绑定到 body 节点<br>
@@ -53,7 +53,7 @@ interface ShortcutJs {
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    on(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+    on(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ListenKeys;
 
     /**
      * 监听快捷键
@@ -62,7 +62,7 @@ interface ShortcutJs {
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    on(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+    on(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ListenKeys;
 
     /**
      * 监听快捷键，事件绑定到 body 中，仅执行一次
@@ -70,7 +70,7 @@ interface ShortcutJs {
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    once(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+    once(keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ListenKeys;
 
     /**
      * 监听快捷键，仅执行一次
@@ -79,18 +79,18 @@ interface ShortcutJs {
      * @param l 需要触发的回调函数
      * @param propagate 是否允许向上传递事件响应，默认为允许
      */
-    once(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ShortcutJs;
+    once(elOrSelectors: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate?: boolean): ListenKeys;
 
 
     /**
      * 关闭监听的快捷键
      * @param selectors 已监听的快捷键或者控件，如果是控件支持 document.querySelector 查询规则
      */
-    off(selectors: string | Element | HotKeys): ShortcutJs;
+    off(selectors: string | Element | HotKeys): ListenKeys;
 
 
 }
 
-declare const ShortcutJs: ShortcutJs;
+declare const ListenKeys: ListenKeys;
 
-export default ShortcutJs
+export default ListenKeys

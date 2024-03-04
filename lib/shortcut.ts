@@ -15,7 +15,7 @@ interface HotKeysEvent extends KeyboardEvent {
     hotKeys: string;
 }
 
-const SHORTCUTS_MODULES = ["ctrl","shift","alt", "meta"];
+const SHORTCUTS_MODULES = ["meta","ctrl","shift","alt"];
 
 class KeyboardShortcut {
     protected _listeners: any;
@@ -32,10 +32,10 @@ class KeyboardShortcut {
             keyCode = code.substring(code.startsWith("Key") ? 3 : 0),
             keys = [], filter = [16,17,18,91,93];
 
+        e.metaKey && keys.push('meta')
         e.ctrlKey && keys.push('ctrl')
         e.shiftKey && keys.push('shift')
         e.altKey && keys.push('alt')
-        e.metaKey && keys.push('meta')
 
         if (filter.filter(n => n === e.keyCode).length == 0)
             keys.push(keyCode.toLowerCase())
@@ -48,7 +48,7 @@ class KeyboardShortcut {
     }
 
 
-    getHotKeys() {
+    get() {
         const len = arguments.length, ar = arguments, t = this
         let el: string | Element = this._D, call: (e: HotKeys) => boolean, isDone = false, sequence: any = {}
 
@@ -190,7 +190,7 @@ class KeyboardShortcut {
         if (typeof (keys) === "string") {
             const ar = keys.split('+')
             // @ts-ignore
-            k = {code: ar[ar.length - 1]}
+            k = {code: ar[ar.length - 1] || '+'} // 如果最后一个字符是空的，当作加号(+)处理
             SHORTCUTS_MODULES.map(s => {
                 k[s] = keys.indexOf(s) != -1
             })
@@ -199,22 +199,23 @@ class KeyboardShortcut {
         }
 
         const h = [];
+        k.meta && h.push('meta')
         k.ctrl && h.push('ctrl')
         k.shift && h.push('shift')
         k.alt && h.push('alt')
-        k.meta && h.push('meta')
         h.push(k.code.toLowerCase())
         return h.join("+")
     }
     protected _element(el: any): HTMLElement {
         return typeof (el) === "string" ? document.querySelector(el) : el;
     }
+
 }
 
 
-const ShortcutJs = new KeyboardShortcut();
+const ListenKeys = new KeyboardShortcut();
 
 // @ts-ignore
-if (typeof window !== "undefined") window.shortcutJs = ShortcutJs;
+//if (typeof window !== "undefined") window.ListenKeys = ListenKeys;
 
-export default ShortcutJs;
+export default ListenKeys;

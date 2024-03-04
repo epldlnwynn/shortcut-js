@@ -1,7 +1,7 @@
 "use strict";
 exports.__esModule = true;
 ;
-var SHORTCUTS_MODULES = ["ctrl", "shift", "alt", "meta"];
+var SHORTCUTS_MODULES = ["meta", "ctrl", "shift", "alt"];
 var KeyboardShortcut = /** @class */ (function () {
     function KeyboardShortcut() {
         this._D = document.body;
@@ -12,10 +12,10 @@ var KeyboardShortcut = /** @class */ (function () {
         var code = (e.code || e.key), 
         // @ts-ignore
         keyCode = code.substring(code.startsWith("Key") ? 3 : 0), keys = [], filter = [16, 17, 18, 91, 93];
+        e.metaKey && keys.push('meta');
         e.ctrlKey && keys.push('ctrl');
         e.shiftKey && keys.push('shift');
         e.altKey && keys.push('alt');
-        e.metaKey && keys.push('meta');
         if (filter.filter(function (n) { return n === e.keyCode; }).length == 0)
             keys.push(keyCode.toLowerCase());
         var k = keys.join("+"), l = this._listeners[k];
@@ -24,7 +24,7 @@ var KeyboardShortcut = /** @class */ (function () {
             l(e), l.propagate && e.stopPropagation(), e.preventDefault();
         }
     };
-    KeyboardShortcut.prototype.getHotKeys = function () {
+    KeyboardShortcut.prototype.get = function () {
         var len = arguments.length, ar = arguments, t = this;
         var el = this._D, call, isDone = false, sequence = {};
         if (len === 2) {
@@ -159,7 +159,7 @@ var KeyboardShortcut = /** @class */ (function () {
         if (typeof (keys) === "string") {
             var ar = keys.split('+');
             // @ts-ignore
-            k = { code: ar[ar.length - 1] };
+            k = { code: ar[ar.length - 1] || '+' }; // 如果最后一个字符是空的，当作加号(+)处理
             SHORTCUTS_MODULES.map(function (s) {
                 k[s] = keys.indexOf(s) != -1;
             });
@@ -168,10 +168,10 @@ var KeyboardShortcut = /** @class */ (function () {
             k = keys;
         }
         var h = [];
+        k.meta && h.push('meta');
         k.ctrl && h.push('ctrl');
         k.shift && h.push('shift');
         k.alt && h.push('alt');
-        k.meta && h.push('meta');
         h.push(k.code.toLowerCase());
         return h.join("+");
     };
@@ -180,9 +180,8 @@ var KeyboardShortcut = /** @class */ (function () {
     };
     return KeyboardShortcut;
 }());
-var ShortcutJs = new KeyboardShortcut();
+var ListenKeys = new KeyboardShortcut();
 // @ts-ignore
-if (typeof window !== "undefined")
-    window.shortcutJs = ShortcutJs;
-exports["default"] = ShortcutJs;
-//# sourceMappingURL=shortcut-js.js.map
+//if (typeof window !== "undefined") window.ListenKeys = ListenKeys;
+exports["default"] = ListenKeys;
+//# sourceMappingURL=shortcut.js.map
