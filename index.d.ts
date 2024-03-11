@@ -35,7 +35,7 @@ interface ListenKeys {
      * 设置成功后需要使用 closeKeys 关闭事件。
      * @param call 回调函数，需要返回一个布尔值，表示是否成功。
      */
-    getHotKeys(call: (e: HotKeys) => boolean): void;
+    get(call: (e: HotKeys) => boolean): void;
 
     /**
      * 采集快捷键<br>
@@ -44,8 +44,15 @@ interface ListenKeys {
      * @param elOrSelectors 需要监听的控件，或 document.querySelector 查询规则
      * @param call 回调函数，需要返回一个布尔值，表示是否成功。
      */
-    getHotKeys(elOrSelectors: string | Element, call: (e: HotKeys) => boolean): void;
+    get(elOrSelectors: string | Element, call: (e: HotKeys) => boolean): void;
 
+
+    /**
+     * 绑定快捷键事件，绑定成功后按下快捷键触发 click 事件。
+     * @since 需要手动处理冒泡(e.preventDefault(),e.stopPropagation())
+     * @param attributeName 指定需要检测的属性，默认检查 `aria-keyshortcuts` 属性是否已设置快捷键
+     */
+    binds(attributeName?: string): void;
 
     /**
      * 监听快捷键，事件绑定到 body 中

@@ -43,6 +43,10 @@ yarn add listen-keys
 ``` typescript
     // 导入对象
     import ListenKeys from 'listen-keys';
+    
+    
+    // 通过检测 aria-keyshortcuts 属性绑定快捷键事件
+    ListenKeys.binds();
 
 
     // 使用对象方式创建

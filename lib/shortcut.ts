@@ -16,6 +16,8 @@ interface HotKeysEvent extends KeyboardEvent {
 }
 
 const SHORTCUTS_MODULES = ["meta","ctrl","shift","alt"];
+const SHORTCUTS_TAG_NAMES = ["HTML", "BODY"];
+const SHORTCUTS_ATTR_NAME = "aria-keyshortcuts"
 
 class KeyboardShortcut {
     protected _listeners: any;
@@ -43,7 +45,8 @@ class KeyboardShortcut {
         const k = keys.join("+"), l = this._listeners[k]
         if (l) {
             e.hotKeys = k
-            l(e),l.propagate && e.stopPropagation(), e.preventDefault()
+            l.propagate && e.stopPropagation(), e.preventDefault()
+            l(e)
         }
     }
 
@@ -101,7 +104,15 @@ class KeyboardShortcut {
             ._addEvent(element,"keyup", hotKeysHandler)
     }
 
-
+    binds(attributeName?: string) {
+        const t = this, an = attributeName || SHORTCUTS_ATTR_NAME
+        var all = document.querySelectorAll<HTMLElement>(['[',an,']'].join(""));
+        all && all.forEach((el: HTMLElement) => {
+            const keys = el.getAttribute(an), propagate = el.getAttribute("aria-propagate") || ""
+            // @ts-ignore
+            keys && t._bind(t._D, keys, e => el.click(e), propagate == 'true', false)
+        })
+    }
     on() {
         const len = arguments.length, ar = arguments
         let el: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate: boolean = false
@@ -143,7 +154,7 @@ class KeyboardShortcut {
         if (s) {
             // 是快捷键
             if (p.indexOf("+") > 0) {
-                el = document.querySelector("[aria-keyshortcuts='" + p +"']")
+                el = document.querySelector(['[', SHORTCUTS_ATTR_NAME, "='", p ,"']"].join(""))
             } else {
                 el = document.querySelector(p)
             }
@@ -152,12 +163,12 @@ class KeyboardShortcut {
                 el = p
             } else {
                 p = this._compose(p)
-                el = document.querySelector("[aria-keyshortcuts='" + p +"']")
+                el = document.querySelector(['[', SHORTCUTS_ATTR_NAME, "='", p ,"']"].join(""))
             }
         }
 
         if (el) {
-            const keys = el.getAttribute("aria-keyshortcuts")
+            const keys = el.getAttribute(SHORTCUTS_ATTR_NAME)
             this._removeEvent(el, "keydown", this._keydownHandler)
             delete this._listeners[keys]
         }
@@ -172,14 +183,17 @@ class KeyboardShortcut {
     }
     protected _removeEvent(el: HTMLElement, type: string, l: any) {
         el?.removeEventListener(type, l, false);
-        el?.removeAttribute("aria-keyshortcuts")
+        el?.removeAttribute(SHORTCUTS_ATTR_NAME)
         return this
     }
     protected _bind(el: string | Element, keys: HotKeys | string, l: (e: HotKeysEvent) => void, propagate: boolean, once: boolean) {
         const ks = this._compose(keys), element = this._element(el)
         this._listeners[ks] = l
         this._listeners[ks].propagate = propagate
-        once == false && element.setAttribute("aria-keyshortcuts", ks)
+
+        if (once == false && SHORTCUTS_TAG_NAMES.indexOf(element.tagName) == -1)
+            element.setAttribute(SHORTCUTS_ATTR_NAME, ks)
+
         this._addEvent(element, "keydown", this._keydownHandler, once);
 
         return this
@@ -214,8 +228,5 @@ class KeyboardShortcut {
 
 
 const ListenKeys = new KeyboardShortcut();
-
-// @ts-ignore
-//if (typeof window !== "undefined") window.ListenKeys = ListenKeys;
 
 export default ListenKeys;
