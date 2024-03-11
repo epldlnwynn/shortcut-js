@@ -1,6 +1,6 @@
 {
     "name": "listen-keys",
-    "version": "1.0.4",
+    "version": "1.0.5",
     "description": "这是一个简单的 WEB 端快捷键监控和设置工具包",
     "keywords": [
         "快捷键",
